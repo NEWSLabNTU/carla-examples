@@ -5,8 +5,9 @@ simulator. It mainly uses Carla's [Python
 API](https://carla.readthedocs.io/en/latest/python_api/). This
 following examples are included:
 
-- [follow_a_car](follow_a_car/README.md)
-- [mountain_driving](mountain_driving/README.md)
+- [follow\_a\_car](follow_a_car/README.md)
+- [mountain\_driving](mountain_driving/README.md)
+- [drive\_and\_log](drive_and_log/README.md)
 
 ## Setup
 

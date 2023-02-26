@@ -1,7 +1,5 @@
 from carla import Transform, Location, Rotation
 
-
-
 WORLD = "Town03"
 NPC1_ROUTE = [
     # Transform(Location(-3.247418, 23.639963, 0.1), Rotation(0.0, 0.84, 0.0)),

@@ -3,8 +3,6 @@ import carla
 from .world import World
 from .config import (
     WORLD,
-    NPC2_ROUTE,
-    NPC1_ROUTE,
     NPC3_ROUTE,
 )
 from .ui import HUD
@@ -68,6 +66,7 @@ def game_loop(args):
             gamma=args.gamma,
             actor_filter=args.actor_filter,
             actor_generation=args.actor_generation,
+            record_on_start=args.record_on_start,
         )
 
         world = World(sim_world, hud, args)

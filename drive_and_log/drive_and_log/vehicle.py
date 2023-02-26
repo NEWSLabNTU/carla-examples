@@ -44,6 +44,7 @@ class Vehicle:
         gamma: Optional[float] = 2.2,
         actor_filter: Optional[str] = "vehicle.tesla.model3",
         actor_generation: Optional[str] = "2",
+        record_on_start: Optional[bool] = False,
     ):
         # Get a blueprint.
         blueprint = random.choice(
@@ -84,7 +85,7 @@ class Vehicle:
         rgb_camera = RgbCamera(actor)
 
         # Initialize camera manager
-        camera_manager = CameraManager(actor, hud, gamma)
+        camera_manager = CameraManager(actor, hud, gamma, record_on_start)
 
         # Initialize agent
         agent = TaAgent(actor, state, hud, speed, points)

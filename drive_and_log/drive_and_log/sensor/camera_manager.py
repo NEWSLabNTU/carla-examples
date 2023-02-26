@@ -67,7 +67,7 @@ DEFAULT_SENSOR_CONFIGS = [
 
 
 class CameraManager(object):
-    def __init__(self, parent_actor, hud: HUD, gamma_correction):
+    def __init__(self, parent_actor, hud: HUD, gamma_correction, record_on_start: bool):
         # Generate camera transformations
         if not parent_actor.type_id.startswith("walker.pedestrian"):
             bbox_extent = get_actor_bounding_extent(parent_actor)
@@ -110,7 +110,7 @@ class CameraManager(object):
         self.surface = None
         self._parent = parent_actor
         self.hud = hud
-        self.recording = False
+        self.recording = record_on_start
         self._camera_transforms = camera_transforms
         self.lidar_range = lidar_range
 

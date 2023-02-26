@@ -35,6 +35,11 @@ def main():
         default="1280x768",
         help="window resolution (default: 1280x720)",
     )
+    argparser.add_argument(
+        "--record-on-start",
+        action="store_true",
+        help="Start recording when the simulation starts.",
+    )
     # argparser.add_argument(
     #     "--actor-filter",
     #     metavar="PATTERN",

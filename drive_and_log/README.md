@@ -65,6 +65,22 @@ frame,timestamp,x,y,z,pitch,yaw,roll
 ...
 ```
 
+This command converts image files to a video file. To do so, find the
+first timestamp in the CSV, which is 16640 in the example. Fill in the
+timestamp to the `-start_number` option. Also, change the output
+directory name in `-i` option.
+
+```sh
+ffmpeg \
+    -start_number 16640 \
+    -framerate 1 \
+    -i 2023-03-03_22-32-50_output/images/%08d.png \
+    -c:v libx264 \
+    -r 10 \
+    output.mp4
+```
+
+
 Note that the coordinates are stored in left-hand rule and x-forward,
 y-right and z-up convention.
 

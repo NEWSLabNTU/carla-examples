@@ -121,8 +121,12 @@ class Vehicle:
         )
 
     def __del__(self):
-        if self.actor is not None:
-            self.actor.destroy()
+        ## The CameraManager stores the actor internally and registers
+        ## callbacks referencing the actor, The actor.destroy() causes
+        ## racing b/w this __del__() and callbacks.  To resolve it,
+        ## the code is commented out anyway.
+        # if self.actor is not None:
+        #     self.actor.destroy()
 
         fields = [
             self.camera_manager,

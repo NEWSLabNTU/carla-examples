@@ -75,7 +75,25 @@ DEFAULT_SENSOR_CONFIGS = [
 
 
 class CameraManager(object):
-    def __init__(self, parent_actor, hud: HUD, gamma_correction, record_on_start: bool):
+    def __init__(
+        self,
+        parent_actor,
+        hud: HUD,
+        gamma_correction,
+        record_on_start: bool,
+        output_dir,
+    ):
+        # Create the output directory
+        output_dir = Path(output_dir)
+        image_dir = output_dir / "images"
+        log_file = output_dir / "transform_log.csv"
+        os.makedirs(output_dir, exist_ok=False)
+        os.makedirs(image_dir, exist_ok=False)
+
+        # Write CSV header to the log file
+        log_writer = open(log_file, "a")
+        log_writer.write("frame,timestamp,x,y,z,pitch,yaw,roll\n")
+
         # Generate camera transformations
         if not parent_actor.type_id.startswith("walker.pedestrian"):
             bbox_extent = get_actor_bounding_extent(parent_actor)
@@ -121,6 +139,8 @@ class CameraManager(object):
         self.recording = record_on_start
         self._camera_transforms = camera_transforms
         self.lidar_range = lidar_range
+        self.image_dir = image_dir
+        self.log_writer = log_writer
 
         self.set_sensor(0, notify=False)
 
@@ -243,14 +263,14 @@ class CameraManager(object):
 
         if recording:
             w_self = weak_self()
-            if not w_self or not w_self._parent:
+            if not w_self:
                 return
-            os.makedirs(IMG_DIR, exist_ok=True)
+
             frame_idx = "%08d" % image.frame
             capture = np.reshape(
                 np.copy(image.raw_data), (image.height, image.width, 4)
             )
-            cv2.imwrite(str(IMG_DIR / f"{frame_idx}.png"), capture)
+            cv2.imwrite(str(w_self.image_dir / f"{frame_idx}.png"), capture)
             transform = w_self._parent.get_transform()
             data_log = ",".join(
                 map(
@@ -267,15 +287,9 @@ class CameraManager(object):
                     ],
                 )
             )
-            if not LOG_FILE.exists():
-                with open(LOG_FILE, "a") as file:
-                    file.write("frame,timestamp,x,y,z,pitch,yaw,roll")
-                    file.write("\n")
 
-            with open(LOG_FILE, "a") as file:
-                file.write(data_log)
-                file.write("\n")
-            #  image.save_to_disk("_out/%08d" % image.frame)
+            w_self.log_writer.write(data_log)
+            w_self.log_writer.write("\n")
 
         return surface
 

@@ -8,7 +8,6 @@ from .sensor import (
     LidarSensor,
     RgbCamera,
 )
-import sys
 import random
 from .utils import get_actor_blueprints, get_actor_display_name
 from typing import Optional, List
@@ -16,6 +15,7 @@ from .ui import HUD
 from .agent import TaAgent
 import weakref
 from .state import State
+from datetime import datetime
 
 
 class Vehicle:
@@ -85,7 +85,8 @@ class Vehicle:
         rgb_camera = RgbCamera(actor)
 
         # Initialize camera manager
-        camera_manager = CameraManager(actor, hud, gamma, record_on_start)
+        output_dir = datetime.now().strftime("%Y-%m-%d_%H-%M-%S_output")
+        camera_manager = CameraManager(actor, hud, gamma, record_on_start, output_dir)
 
         # Initialize agent
         agent = TaAgent(actor, state, hud, speed, points)

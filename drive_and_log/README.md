@@ -27,15 +27,46 @@ when the simulation starts.
 ## Recording
 
 The recording feature is disabled when the program starts. Press `r`
-key to start recording camera images. It store image files in the
-`_out` directory.
+key to start recording camera images. It store image files and vehicle
+poses in an output directory named by a date like
+`2023-03-03_22-23-00_output`.
 
-Pass `--record-on-start` option to enable recording by the time the
-simulation starts.
+Alternatively, pass `--record-on-start` option to enable recording by
+the time the simulation starts.
 
 ```sh
 poetry run main
 ```
+
+## The Recorded Data
+
+The output directory layout looks like this. The inner
+`transform_log.csv` stores a sequence of vehicle poses in CSV. The
+`image` directory stores camera images named in timestamps.
+
+```
+2023-03-03_22-23-00_output/
+├── images/
+│   ├── 00016640.png
+│   ├── 00016641.png
+│   ├── 00016642.png
+│   ├── 00016643.png
+│   └── ...
+└── transform_log.csv
+```
+
+The image file names corresponds the `timestamp` values in CSV. For
+example,
+
+```csv
+frame,timestamp,x,y,z,pitch,yaw,roll
+00016640,2.4639113899320364,-52.13356018066406,-40.1802978515625,0.36480003595352173,0.0,90.43230438232422,0.0
+00016641,2.5139113906770945,-52.13356018066406,-40.1802978515625,0.27660003304481506,0.0,90.43230438232422,0.0
+...
+```
+
+Note that the coordinates are stored in left-hand rule and x-forward,
+y-right and z-up convention.
 
 ## Configuration
 
@@ -47,7 +78,7 @@ check the official document
 [here](https://carla.readthedocs.io/en/latest/core_map/) to look for a
 list of built-in maps.
 
-The `NPCx_ROUTE` variable is a list of
+The `NPC3_ROUTE` variable is a list of
 [`carla.Transofrm`](https://carla.readthedocs.io/en/latest/python_api/#carlatransform)
 the configures the driving path for the vehicle. To record a new path
 on your own, you can start the simulation and press `p` to disable

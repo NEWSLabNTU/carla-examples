@@ -5,11 +5,12 @@ can press `r` during simulation to start recording camera images into
 files, or run with a `--record-on-start` option to enable recording
 when the simulation starts.
 
-## Launch to Simulation
+## Launch the Simulation
 
-1. Please follow the instructions [here](https://python-poetry.org/docs/)
-to install `poetry`. It is a Python package manager that downloads
-dependencies for this example.
+1. Please follow the instructions
+   [here](https://python-poetry.org/docs/) to install `poetry`. It is
+   a Python package manager that downloads dependencies for this
+   example.
 
 2. Prepare a virtual environment and install required dependencies.
 
@@ -55,15 +56,15 @@ control the car.
 
 
 ```python
-WORLD = "Town03"
+# Set your world here.
+WORLD = "Town10HD"
 
-NPC1_ROUTE = [
-    Transform(
-        Location(13.695746, 18.811819, 0.1), Rotation(-0.000031, -43.884972, -0.007568)
-    ),
-    Transform(
-        Location(22.825905, 1.144211, 0.1), Rotation(0.003324, -89.318871, -0.000676)
-    ),
-    # ...
+NPC3_ROUTE = [
+    Transform(Location(x=-52.133560, y=-40.180298, z=0.482400), Rotation(pitch=0.000000, yaw=90.432304, roll=0.000000)),
+    Transform(Location(x=-81.243576, y=12.964413, z=0.000293), Rotation(pitch=-0.000369, yaw=-179.756287, roll=-0.000031)),
+    Transform(Location(x=-52.330223, y=-9.467075, z=0.000294), Rotation(pitch=-0.000061, yaw=89.905533, roll=0.000000)),
+    Transform(Location(x=-103.806343, y=52.093533, z=0.000292), Rotation(pitch=-0.004945, yaw=-88.720642, roll=-0.000214)),
+    Transform(Location(x=-72.047188, y=27.981750, z=0.000293), Rotation(pitch=-0.000396, yaw=0.196186, roll=0.000000)),
+    Transform(Location(x=-72.612579, y=128.264389, z=0.001414), Rotation(pitch=-0.004337, yaw=-164.806107, roll=-0.474091)),
 ]
 ```

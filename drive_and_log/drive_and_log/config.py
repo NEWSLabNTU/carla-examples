@@ -37,10 +37,28 @@ from carla import Transform, Location, Rotation
 
 WORLD = "Town10HD"
 NPC3_ROUTE = [
-    Transform(Location(x=-52.133560, y=-40.180298, z=0.482400), Rotation(pitch=0.000000, yaw=90.432304, roll=0.000000)),
-    Transform(Location(x=-81.243576, y=12.964413, z=0.000293), Rotation(pitch=-0.000369, yaw=-179.756287, roll=-0.000031)),
-    Transform(Location(x=-52.330223, y=-9.467075, z=0.000294), Rotation(pitch=-0.000061, yaw=89.905533, roll=0.000000)),
-    Transform(Location(x=-103.806343, y=52.093533, z=0.000292), Rotation(pitch=-0.004945, yaw=-88.720642, roll=-0.000214)),
-    Transform(Location(x=-72.047188, y=27.981750, z=0.000293), Rotation(pitch=-0.000396, yaw=0.196186, roll=0.000000)),
-    Transform(Location(x=-72.612579, y=128.264389, z=0.001414), Rotation(pitch=-0.004337, yaw=-164.806107, roll=-0.474091)),
+    Transform(
+        Location(x=-52.133560, y=-40.180298, z=0.482400),
+        Rotation(pitch=0.000000, yaw=90.432304, roll=0.000000),
+    ),
+    Transform(
+        Location(x=-81.243576, y=12.964413, z=0.000293),
+        Rotation(pitch=-0.000369, yaw=-179.756287, roll=-0.000031),
+    ),
+    Transform(
+        Location(x=-52.330223, y=-9.467075, z=0.000294),
+        Rotation(pitch=-0.000061, yaw=89.905533, roll=0.000000),
+    ),
+    Transform(
+        Location(x=-103.806343, y=52.093533, z=0.000292),
+        Rotation(pitch=-0.004945, yaw=-88.720642, roll=-0.000214),
+    ),
+    Transform(
+        Location(x=-72.047188, y=27.981750, z=0.000293),
+        Rotation(pitch=-0.000396, yaw=0.196186, roll=0.000000),
+    ),
+    Transform(
+        Location(x=-72.612579, y=128.264389, z=0.001414),
+        Rotation(pitch=-0.004337, yaw=-164.806107, roll=-0.474091),
+    ),
 ]

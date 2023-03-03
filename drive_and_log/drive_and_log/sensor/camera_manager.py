@@ -18,9 +18,9 @@ from typing import Optional, Dict
 from pathlib import Path
 import os
 
-OUTPUT_DIR = Path('_out')
-IMG_DIR = OUTPUT_DIR / 'images'
-LOG_FILE = OUTPUT_DIR / 'transform_log.csv'
+OUTPUT_DIR = Path("_out")
+IMG_DIR = OUTPUT_DIR / "images"
+LOG_FILE = OUTPUT_DIR / "transform_log.csv"
 
 
 DEFAULT_SENSOR_CONFIGS = [
@@ -150,7 +150,13 @@ class CameraManager(object):
                 return
             sensor = me.sensors[me.index]
             self.surface = CameraManager._parse_image(
-                sensor.kind, sensor.cc, image, me.hud, me.recording, me.lidar_range, weakref.ref(self)
+                sensor.kind,
+                sensor.cc,
+                image,
+                me.hud,
+                me.recording,
+                me.lidar_range,
+                weakref.ref(self),
             )
 
         # We need to pass the lambda a weak reference to self to avoid
@@ -240,28 +246,35 @@ class CameraManager(object):
             if not w_self or not w_self._parent:
                 return
             os.makedirs(IMG_DIR, exist_ok=True)
-            frame_idx = '%08d' % image.frame
-            capture = np.reshape(np.copy(image.raw_data), (image.height, image.width, 4))
-            cv2.imwrite(str(IMG_DIR / f'{frame_idx}.png'), capture)
+            frame_idx = "%08d" % image.frame
+            capture = np.reshape(
+                np.copy(image.raw_data), (image.height, image.width, 4)
+            )
+            cv2.imwrite(str(IMG_DIR / f"{frame_idx}.png"), capture)
             transform = w_self._parent.get_transform()
-            data_log = ','.join(map(str, [
-                frame_idx,
-                image.timestamp,
-                transform.location.x,
-                transform.location.y,
-                transform.location.z,
-                transform.rotation.pitch,
-                transform.rotation.yaw,
-                transform.rotation.roll,
-            ]))
+            data_log = ",".join(
+                map(
+                    str,
+                    [
+                        frame_idx,
+                        image.timestamp,
+                        transform.location.x,
+                        transform.location.y,
+                        transform.location.z,
+                        transform.rotation.pitch,
+                        transform.rotation.yaw,
+                        transform.rotation.roll,
+                    ],
+                )
+            )
             if not LOG_FILE.exists():
-                with open(LOG_FILE, 'a') as file:
-                    file.write('frame,timestamp,x,y,z,pitch,yaw,roll')
-                    file.write('\n')
+                with open(LOG_FILE, "a") as file:
+                    file.write("frame,timestamp,x,y,z,pitch,yaw,roll")
+                    file.write("\n")
 
-            with open(LOG_FILE, 'a') as file:
+            with open(LOG_FILE, "a") as file:
                 file.write(data_log)
-                file.write('\n')
+                file.write("\n")
             #  image.save_to_disk("_out/%08d" % image.frame)
 
         return surface

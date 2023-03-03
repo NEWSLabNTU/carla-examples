@@ -4,6 +4,7 @@ import pygame
 import weakref
 from ..ui import HUD
 from ..utils import get_actor_bounding_extent
+import cv2
 from carla import (
     ColorConverter as CC,
     Transform,
@@ -13,6 +14,13 @@ from carla import (
     Vector3D,
 )
 from typing import Optional, Dict
+
+from pathlib import Path
+import os
+
+OUTPUT_DIR = Path('_out')
+IMG_DIR = OUTPUT_DIR / 'images'
+LOG_FILE = OUTPUT_DIR / 'transform_log.csv'
 
 
 DEFAULT_SENSOR_CONFIGS = [
@@ -142,7 +150,7 @@ class CameraManager(object):
                 return
             sensor = me.sensors[me.index]
             self.surface = CameraManager._parse_image(
-                sensor.kind, sensor.cc, image, me.hud, me.recording, me.lidar_range
+                sensor.kind, sensor.cc, image, me.hud, me.recording, me.lidar_range, weakref.ref(self)
             )
 
         # We need to pass the lambda a weak reference to self to avoid
@@ -173,6 +181,7 @@ class CameraManager(object):
         hud: HUD,
         recording: bool,
         lidar_range: float,
+        weak_self,
     ) -> pygame.Surface:
         if kind.startswith("sensor.lidar"):
             points = np.frombuffer(image.raw_data, dtype=np.dtype("f4"))
@@ -227,7 +236,33 @@ class CameraManager(object):
             surface = pygame.surfarray.make_surface(array.swapaxes(0, 1))
 
         if recording:
-            image.save_to_disk("_out/%08d" % image.frame)
+            w_self = weak_self()
+            if not w_self or not w_self._parent:
+                return
+            os.makedirs(IMG_DIR, exist_ok=True)
+            frame_idx = '%08d' % image.frame
+            capture = np.reshape(np.copy(image.raw_data), (image.height, image.width, 4))
+            cv2.imwrite(str(IMG_DIR / f'{frame_idx}.png'), capture)
+            transform = w_self._parent.get_transform()
+            data_log = ','.join(map(str, [
+                frame_idx,
+                image.timestamp,
+                transform.location.x,
+                transform.location.y,
+                transform.location.z,
+                transform.rotation.pitch,
+                transform.rotation.yaw,
+                transform.rotation.roll,
+            ]))
+            if not LOG_FILE.exists():
+                with open(LOG_FILE, 'a') as file:
+                    file.write('frame,timestamp,x,y,z,pitch,yaw,roll')
+                    file.write('\n')
+
+            with open(LOG_FILE, 'a') as file:
+                file.write(data_log)
+                file.write('\n')
+            #  image.save_to_disk("_out/%08d" % image.frame)
 
         return surface
 
@@ -261,15 +296,15 @@ def generate_vehicle_transforms(extent: Vector3D):
 
     return [
         (
+            Transform(Location(x=+0.8 * bound_x, y=+0.0 * bound_y, z=1.3 * bound_z)),
+            AttachmentType.Rigid,
+        ),
+        (
             Transform(
                 Location(x=-2.0 * bound_x, y=+0.0 * bound_y, z=2.0 * bound_z),
                 Rotation(pitch=8.0),
             ),
             AttachmentType.SpringArm,
-        ),
-        (
-            Transform(Location(x=+0.8 * bound_x, y=+0.0 * bound_y, z=1.3 * bound_z)),
-            AttachmentType.Rigid,
         ),
         (
             Transform(Location(x=+1.9 * bound_x, y=+1.0 * bound_y, z=1.2 * bound_z)),

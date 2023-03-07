@@ -271,19 +271,19 @@ class CameraManager(object):
                 np.copy(image.raw_data), (image.height, image.width, 4)
             )
             cv2.imwrite(str(w_self.image_dir / f"{frame_idx}.png"), capture)
-            transform = w_self._parent.get_transform()
+            #  transform = w_self._parent.get_transform()
             data_log = ",".join(
                 map(
                     str,
                     [
                         frame_idx,
                         image.timestamp,
-                        transform.location.x,
-                        transform.location.y,
-                        transform.location.z,
-                        transform.rotation.pitch,
-                        transform.rotation.yaw,
-                        transform.rotation.roll,
+                        image.transform.location.x,
+                        image.transform.location.y,
+                        image.transform.location.z,
+                        image.transform.rotation.pitch,
+                        image.transform.rotation.yaw,
+                        image.transform.rotation.roll,
                     ],
                 )
             )

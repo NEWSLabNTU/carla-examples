@@ -42,23 +42,59 @@ NPC3_ROUTE = [
         Rotation(pitch=0.000000, yaw=90.432304, roll=0.000000),
     ),
     Transform(
-        Location(x=-81.243576, y=12.964413, z=0.000293),
-        Rotation(pitch=-0.000369, yaw=-179.756287, roll=-0.000031),
+        Location(x=-28.01, y=24.58, z=0.0),
+        Rotation(pitch=0, yaw=1.51, roll=0),
     ),
     Transform(
-        Location(x=-52.330223, y=-9.467075, z=0.000294),
-        Rotation(pitch=-0.000061, yaw=89.905533, roll=0.000000),
+        Location(x=28.07, y=28.01, z=0),
+        Rotation(pitch=0, yaw=3.07, roll=0),
     ),
     Transform(
-        Location(x=-103.806343, y=52.093533, z=0.000292),
-        Rotation(pitch=-0.004945, yaw=-88.720642, roll=-0.000214),
+        Location(x=40.70, y=52.72, z=0),
+        Rotation(pitch=0, yaw=93.47, roll=0),
     ),
     Transform(
-        Location(x=-72.047188, y=27.981750, z=0.000293),
-        Rotation(pitch=-0.000396, yaw=0.196186, roll=0.000000),
+        Location(x=57.37, y=69.8, z=0),
+        Rotation(pitch=0, yaw=1.46, roll=0),
     ),
     Transform(
-        Location(x=-72.612579, y=128.264389, z=0.001414),
-        Rotation(pitch=-0.004337, yaw=-164.806107, roll=-0.474091),
+        Location(x=85.85, y=70.01, z=0),
+        Rotation(pitch=0, yaw=1.84, roll=0),
+    ),
+    Transform(
+        Location(x=98.41, y=82.32, z=0),
+        Rotation(pitch=0, yaw=89.39, roll=0),
+    ),
+    Transform(
+        Location(x=-24.97, y=129.98, z=0),
+        Rotation(pitch=0, yaw=-179.62, roll=0),
+    ),
+    Transform(
+        Location(x=-41.45, y=114.5, z=0),
+        Rotation(pitch=0, yaw=-89.79, roll=0),
+    ),
+    Transform(
+        Location(x=-41.48, y=43.36, z=0),
+        Rotation(pitch=0, yaw=-90.42, roll=0),
+    ),
+    Transform(
+        Location(x=-67.51, y=12.82, z=0),
+        Rotation(pitch=0, yaw=179.3, roll=0),
+    ),
+    Transform(
+        Location(x=-87.47, y=12.85, z=0),
+        Rotation(pitch=0, yaw=179.38, roll=0),
+    ),
+    Transform(
+        Location(x=-103, y=-0.3, z=0),
+        Rotation(pitch=0, yaw=-91.22, roll=0),
+    ),
+    Transform(
+        Location(x=-68.52, y=-58.1, z=0),
+        Rotation(pitch=0, yaw=-0.22, roll=0),
+    ),
+    Transform(
+        Location(x=-52.13, y=-43.52, z=0),
+        Rotation(pitch=0, yaw=92.41, roll=0),
     ),
 ]

@@ -91,8 +91,11 @@ class CameraManager(object):
         os.makedirs(image_dir, exist_ok=False)
 
         # Write CSV header to the log file
-        log_writer = open(log_file, "a")
-        log_writer.write("frame,timestamp,x,y,z,pitch,yaw,roll\n")
+        if record_on_start:
+            log_writer = open(log_file, "a")
+            log_writer.write("frame,timestamp,x,y,z,pitch,yaw,roll\n")
+        else:
+            log_writer = None
 
         # Generate camera transformations
         if not parent_actor.type_id.startswith("walker.pedestrian"):

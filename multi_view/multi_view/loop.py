@@ -20,6 +20,9 @@ def game_loop(args):
     pygame.font.init()
     world = None
     original_settings = None
+    sim_world = None
+    player = None
+    client = None
 
     try:
         # Initialize world
@@ -94,10 +97,14 @@ def game_loop(args):
             pygame.display.flip()
 
     finally:
-        if original_settings:
-            sim_world.apply_settings(original_settings)
+        if player is not None:
+            del player
 
-        if world and world.recording_enabled:
+        if sim_world is not None:
+            if original_settings:
+                sim_world.apply_settings(original_settings)
+
+        if world is not None and client is not None and world.recording_enabled:
             client.stop_recorder()
 
         pygame.quit()

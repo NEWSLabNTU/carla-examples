@@ -15,15 +15,55 @@ from carla import (
     AttachmentType,
     Vector3D,
 )
-from typing import Optional, Dict, Tuple
-
+from typing import Optional, Dict, Tuple, Dict
 from pathlib import Path
 import os
+from numpy.typing import ArrayLike
+from threading import Lock
 
+VIDEO_RESOLUTION = (1920, 1080)
+FRAME_RATE = 10
 OUTPUT_DIR = Path("_out")
 IMG_DIR = OUTPUT_DIR / "images"
 LOG_FILE = OUTPUT_DIR / "transform_log.csv"
-CAMERA_CONFIG = ["sensor.camera.rgb", CC.Raw, "Camera RGB", {"sensor_tick": "0.1"}]
+CAMERA_CONFIGS = [
+    (
+        "front",
+        "sensor.camera.rgb",
+        CC.Raw,
+        "Camera RGB",
+        {"sensor_tick": str(1.0 / FRAME_RATE)},
+    ),
+    (
+        "front-right",
+        "sensor.camera.rgb",
+        CC.Raw,
+        "Camera RGB",
+        {"sensor_tick": str(1.0 / FRAME_RATE)},
+    ),
+    (
+        "rear",
+        "sensor.camera.rgb",
+        CC.Raw,
+        "Camera RGB",
+        {"sensor_tick": str(1.0 / FRAME_RATE)},
+    ),
+    (
+        "rear-right",
+        "sensor.camera.rgb",
+        CC.Raw,
+        "Camera RGB",
+        {"sensor_tick": str(1.0 / FRAME_RATE)},
+    ),
+]
+
+
+@dataclass
+class DisplayPosition:
+    left: int
+    top: int
+    width: int
+    height: int
 
 
 def sensor_callback(weak_me, weak_sensor, render_size, image):
@@ -42,8 +82,11 @@ def sensor_callback(weak_me, weak_sensor, render_size, image):
         image,
     )
 
+    if me.recording:
+        me._record_image(sensor.name, sensor.cc, image)
 
-class CameraManager(object):
+
+class CameraManager:
     def __init__(
         self,
         parent_actor,
@@ -55,14 +98,19 @@ class CameraManager(object):
         # Create the output directory
         output_dir = Path(output_dir)
         image_dir = output_dir / "images"
+        video_dir = output_dir / "videos"
         log_file = output_dir / "transform_log.csv"
         os.makedirs(output_dir, exist_ok=False)
         os.makedirs(image_dir, exist_ok=False)
+        os.makedirs(video_dir, exist_ok=False)
+
+        video_recorder = VideoRecorder(video_dir, FRAME_RATE)
 
         # Write CSV header to the log file
         if record_on_start:
             log_writer = open(log_file, "a")
             log_writer.write("frame,timestamp,x,y,z,pitch,yaw,roll\n")
+            video_recorder.start()
         else:
             log_writer = None
 
@@ -86,15 +134,17 @@ class CameraManager(object):
         # Create sensor instances
         sensors = list()
 
-        for (transform, attachment_type), display_pos in zip(
-            camera_transforms, camera_display_positions
-        ):
-
+        for args in zip(CAMERA_CONFIGS, camera_transforms, camera_display_positions):
             # Create the blueprint for camera
-            kind, cc, desc, params = CAMERA_CONFIG
+            (
+                (name, kind, cc, desc, params),
+                (transform, attachment_type),
+                display_pos,
+            ) = args
             bp = bp_library.find(kind)
-            bp.set_attribute("image_size_x", str(display_pos.width))
-            bp.set_attribute("image_size_y", str(display_pos.height))
+            image_size_x, image_size_y = VIDEO_RESOLUTION
+            bp.set_attribute("image_size_x", str(image_size_x))
+            bp.set_attribute("image_size_y", str(image_size_y))
 
             if bp.has_attribute("gamma"):
                 bp.set_attribute("gamma", str(gamma_correction))
@@ -108,7 +158,19 @@ class CameraManager(object):
                 attach_to=parent_actor,
                 attachment_type=attachment_type,
             )
-            sensor = SensorDesc(kind, cc, desc, params, bp, actor, None)
+            sensor = SensorDesc(
+                name,
+                kind,
+                cc,
+                desc,
+                params,
+                bp,
+                actor,
+                None,
+                transform,
+                attachment_type,
+                display_pos,
+            )
             sensors.append(sensor)
 
         # Assign fields
@@ -120,9 +182,8 @@ class CameraManager(object):
         self.lidar_range = lidar_range
         self.image_dir = image_dir
         self.log_writer = log_writer
-        self._camera_transforms = camera_transforms
-        self._camera_display_positions = camera_display_positions
         self._log_file = log_file
+        self.video_recorder = video_recorder
 
         # Register sensor callbacks AFTER assigning class fields.
         for sensor, display_pos in zip(sensors, camera_display_positions):
@@ -138,7 +199,7 @@ class CameraManager(object):
         self.set_sensor(0, notify=False)
 
     def __del__(self):
-        pass
+        del self.video_recorder
 
     def toggle_camera(self):
         # self.transform_index = (self.transform_index + 1) % len(self._camera_transforms)
@@ -154,6 +215,11 @@ class CameraManager(object):
         self.set_sensor((self.sensor_index + 1) % len(self.sensors))
 
     def toggle_recording(self):
+        if self.recording:
+            self.video_recorder.stop()
+        else:
+            self.video_recorder.start()
+
         self.recording = not self.recording
 
         if self.recording and self.log_writer is None:
@@ -163,10 +229,19 @@ class CameraManager(object):
         self.hud.notification("Recording %s" % ("On" if self.recording else "Off"))
 
     def render(self, display):
-        for sensor, display_pos in zip(self.sensors, self._camera_display_positions):
+        for sensor in self.sensors:
             if sensor.surface is not None:
-                pos = (display_pos.left, display_pos.top)
-                rect = display.blit(sensor.surface, pos)
+                pos = (sensor.display_pos.left, sensor.display_pos.top)
+                display.blit(sensor.surface, pos)
+
+    def _record_image(self, name: str, cc: CC, image: carla.Image):
+        frame_idx = image.frame
+        image.convert(cc)
+        array = np.frombuffer(image.raw_data, dtype=np.dtype("uint8"))
+        array = np.reshape(array, (image.height, image.width, 4))
+        array = array[:, :, :3]
+        # array = array[:, :, ::-1]
+        self.video_recorder.push_image(name, frame_idx, array)
 
     def _parse_image(
         self,
@@ -234,11 +309,12 @@ class CameraManager(object):
 
         if recording:
             frame_idx = "%08d" % image.frame
-            capture = np.reshape(
-                np.copy(image.raw_data), (image.height, image.width, 4)
-            )
-            cv2.imwrite(str(self.image_dir / f"{frame_idx}.png"), capture)
+            # capture = np.reshape(
+            #     np.copy(image.raw_data), (image.height, image.width, 4)
+            # )
+            # cv2.imwrite(str(self.image_dir / f"{frame_idx}.png"), capture)
             #  transform = self._parent.get_transform()
+
             data_log = ",".join(
                 map(
                     str,
@@ -261,7 +337,9 @@ class CameraManager(object):
         return surface
 
 
+@dataclass
 class SensorDesc:
+    name: str
     kind: str
     cc: CC
     desc: str
@@ -269,33 +347,18 @@ class SensorDesc:
     blueprint: carla.ActorBlueprint
     actor: carla.Actor
     surface: Optional[pygame.Surface]
-
-    def __init__(
-        self,
-        kind: str,
-        cc: CC,
-        desc: str,
-        params: Dict[str, str],
-        blueprint: carla.ActorBlueprint,
-        actor: carla.Actor,
-        surface: Optional[pygame.Surface],
-    ):
-        self.kind = kind
-        self.cc = cc
-        self.desc = desc
-        self.params = params
-        self.blueprint = blueprint
-        self.actor = actor
-        self.surface = surface
+    transform: Transform
+    attachment_type: AttachmentType
+    display_pos: DisplayPosition
 
 
 def generate_vehicle_transforms(extent: Vector3D):
     # list of (x, y, z, yaw, type)
     params = [
         (0.8, 0.0, 1.3, 0.0, AttachmentType.Rigid),
-        (0.0, -1.0, 1.3, -45.0, AttachmentType.Rigid),
+        (0.8, 1.0, 1.3, 60.0, AttachmentType.Rigid),
         (-1.0, 0.0, 1.3, 180.0, AttachmentType.Rigid),
-        (0.0, 1.0, 1.3, 45.0, AttachmentType.Rigid),
+        (-1.0, 1.0, 1.3, 120.0, AttachmentType.Rigid),
     ]
 
     def build_transform(
@@ -349,9 +412,86 @@ def generate_walker_transforms():
     ]
 
 
-@dataclass
-class DisplayPosition:
-    left: int
-    top: int
-    width: int
-    height: int
+class VideoRecorder:
+    session_sn: int
+    log_dir: Path
+    is_started: bool
+    frame_rate: int
+    sn: Dict[str, int]
+    writers: Dict[str, cv2.VideoWriter]
+    last_image: Dict[str, ArrayLike]
+    lock: Lock
+
+    def __init__(self, log_dir: Path, frame_rate: int):
+        self.session_sn = 0
+        self.log_dir = log_dir
+        self.frame_rate = frame_rate
+        self.writers = dict()
+        self.sn = dict()
+        self.last_image = dict()
+        self.is_started = False
+        self.lock = Lock()
+
+    def __del__(self):
+        for writer in self.writers.values():
+            writer.release()
+
+    def start(self):
+        self.lock.acquire()
+        assert not self.is_started
+        self.session_sn += 1
+        self.is_started = True
+        self.lock.release()
+
+    def stop(self):
+        self.lock.acquire()
+        assert self.is_started
+        self.is_started = False
+
+        for writer in self.writers.values():
+            writer.release()
+
+        self.writers = dict()
+        self.sn = dict()
+        self.last_image = dict()
+        self.lock.release()
+
+    def push_image(self, name: str, frame_idx: int, image: ArrayLike):
+        self.lock.acquire()
+
+        if not self.is_started:
+            return
+
+        if name not in self.writers:
+            img_h, img_w, _ = image.shape
+            writer = self.make_writer(name, (img_w, img_h))
+            writer.write(image)
+
+            self.writers[name] = writer
+            self.sn[name] = frame_idx
+            self.last_image[name] = image
+
+        else:
+            writer = self.writers[name]
+            last_sn = self.sn[name]
+
+            if frame_idx < last_sn:
+                return
+            elif frame_idx > last_sn:
+                last_image = self.last_image[name]
+                for _ in range(last_sn, frame_idx):
+                    writer.write(last_image)
+
+            writer.write(image)
+
+            self.sn[name] = frame_idx
+            self.last_image[name] = image
+
+        self.lock.release()
+
+    def make_writer(self, name: str, size: Tuple[int, int]):
+        session_sn = self.session_sn
+        video_path = self.log_dir / format(f"{name}-{session_sn}.mp4")
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+        writer = cv2.VideoWriter(str(video_path), fourcc, self.frame_rate, size)
+        return writer

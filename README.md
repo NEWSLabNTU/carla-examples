@@ -45,7 +45,7 @@ To run the simulator server,
 
 To run an example scenario, say `follow_a_car`,
 
-1. Open a terminal, go to the [follow_a_car](follow_a_car/README.md)
+1. Open a terminal, go to the [follow\_a\_car](follow_a_car/README.md)
    directory.
 3. Run `make` to launch the client. The client will configure the
 scenario and apply car control.
